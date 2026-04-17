@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ÔN TẬP CK2 TIN HỌC 8</title>
+  <style>
+    :root{--bg:#f1ecf8;--card:#fff;--primary:#673ab7;--text:#202124;--line:#dadce0;--ok:#137333;--bad:#d93025}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--text)}
+    .container{width:min(900px,92%);margin:24px auto 40px}
+    .card{background:var(--card);border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.1);margin-bottom:14px}
+    .header{padding:22px;border-top:10px solid var(--primary)} h1{margin:0;font-size:30px;font-weight:500}
+    .tools{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap} .q-card{padding:18px 20px}
+    .q-title{margin:0 0 10px;font-size:16px;line-height:1.45} .req{color:var(--bad)}
+    .opt{display:flex;gap:10px;align-items:flex-start;padding:8px 0;font-size:15px;line-height:1.35} .opt input{margin-top:2px}
+    .badge{width:26px;height:26px;border:1px solid #c8c8c8;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#444}
+    .txt{width:100%;border:none;border-bottom:1px solid var(--line);outline:none;padding:8px 2px;font-size:15px}
+    .txt:focus{border-bottom:2px solid var(--primary);padding-bottom:7px}
+    .img-wrap{margin:10px 0}.img-wrap img{max-width:100%;height:auto;border:1px solid #ececec;border-radius:6px}
+    .timer{position:fixed;right:16px;bottom:16px;z-index:999;background:#1f1f1f;color:#fff;padding:10px 14px;border-radius:999px;font-weight:700;letter-spacing:.5px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+    .timer.warn{background:#9a5e00}.timer.danger{background:#b3261e}
+    .actions{padding:16px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .btn{border:none;border-radius:6px;padding:10px 16px;cursor:pointer;font-size:14px}
+    .btn-primary{background:var(--primary);color:#fff}.btn-secondary{background:#ece8f8;color:#2f1f5f}
+    .summary{display:none;margin:0 20px 18px;background:#eef7ff;border:1px solid #d4e8ff;padding:12px;border-radius:8px;line-height:1.55}
+    .score{font-size:20px;font-weight:700}.review{display:none;margin-top:10px;padding-top:10px;border-top:1px solid #ececec;font-size:14px}
+    .ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}
+  </style>
+</head>
+<body>
+  <div id="timer" class="timer">20:00</div>
+  <div class="container">
+    <form id="quizForm">
+      <section class="card header">
+        <h1>ÔN TẬP CK2 TIN HỌC 8</h1>
+        <div class="tools">
+          <button id="shuffleQuestionsBtn" type="button" class="btn btn-secondary">Xáo trộn câu hỏi</button>
+          <button id="shuffleAnswersBtn" type="button" class="btn btn-secondary">Xáo trộn câu trả lời</button>
+        </div>
+      </section>
+      <div id="questions"></div>
+      <section class="card">
+        <div class="actions">
+          <button id="submitBtn" class="btn btn-primary" type="submit">Nộp bài</button>
+          <button id="retryBtn" class="btn btn-secondary" type="button" style="display:none;">Làm lại</button>
+        </div>
+        <div id="summary" class="summary"></div>
+      </section>
+    </form>
+  </div>
+  <script>
+    const letters=["A","B","C","D"];
+    const img1="file:///C:/Users/Administrator/.cursor/projects/c-Users-Administrator-cursor/assets/c__Users_Administrator_AppData_Roaming_Cursor_User_workspaceStorage_652f141f2ed6390d9ea0c24e5036e085_images_image-3eb0005f-cb2d-4224-bb1d-ec65c999198f.png";
+    const img2="file:///C:/Users/Administrator/.cursor/projects/c-Users-Administrator-cursor/assets/c__Users_Administrator_AppData_Roaming_Cursor_User_workspaceStorage_652f141f2ed6390d9ea0c24e5036e085_images_image-9d75caed-91ce-44e5-8cb5-a76817924fef.png";
+    const img3="file:///C:/Users/Administrator/.cursor/projects/c-Users-Administrator-cursor/assets/c__Users_Administrator_AppData_Roaming_Cursor_User_workspaceStorage_652f141f2ed6390d9ea0c24e5036e085_images_image-686fc84a-b788-4947-bda9-9727faf316f3.png";
+    const img4="file:///C:/Users/Administrator/.cursor/projects/c-Users-Administrator-cursor/assets/c__Users_Administrator_AppData_Roaming_Cursor_User_workspaceStorage_652f141f2ed6390d9ea0c24e5036e085_images_image-a37bf141-6798-498a-af59-cacc09f4c37f.png";
+    const img5="file:///C:/Users/Administrator/.cursor/projects/c-Users-Administrator-cursor/assets/c__Users_Administrator_AppData_Roaming_Cursor_User_workspaceStorage_652f141f2ed6390d9ea0c24e5036e085_images_image-73eae470-0c29-41d9-892c-a30176a7a4ab.png";
+    const img6="file:///C:/Users/Administrator/.cursor/projects/c-Users-Administrator-cursor/assets/c__Users_Administrator_AppData_Roaming_Cursor_User_workspaceStorage_652f141f2ed6390d9ea0c24e5036e085_images_image-d030fc14-0715-418a-a767-c5b48905e703.png";
+    const baseQuestions=[
+      {id:"q1",type:"mcq",title:"Trong Thuật toán giải phương trình ax + b = 0, để kiểm tra trường hợp phương trình vô nghiệm em sử dụng bộ test nào dưới đây?",options:["a = 0, b = 1","a = 0, b = 0","a = 3, b = 6","Tất cả đều đúng"],answer:"a = 0, b = 1"},
+      {id:"q2",type:"mcq",title:"Trong ngôn ngữ lập trình Scratch, có mấy loại cấu trúc rẽ nhánh?",options:["2","3","4","5"],answer:"2"},
+      {id:"q3",type:"mcq",title:"Bạn Khoa viết kịch bản mô tả hoạt động của xe ô tô chạy trên đường như sau: Khi xe cách hòn đá nhỏ hơn 120 bước, xe sẽ dừng lại. Chương trình Scratch thực hiện thuật toán là?",options:["Xe khởi động -> Khoảng cách hòn đá 120 bước -> nhắc -> đi 5 bước -> dừng lại","Xe khởi động -> Khoảng cách hòn đá 120 bước -> đi 5 bước -> nhắc -> dừng lại","Xe khởi động -> đi 5 bước -> Khoảng cách hòn đá 120 bước -> nhắc -> dừng lại","Xe khởi động -> đi 5 bước -> nhắc -> Khoảng cách hòn đá 120 bước -> dừng lại"],answer:"Xe khởi động -> Khoảng cách hòn đá 120 bước -> đi 5 bước -> nhắc -> dừng lại"},
+      {id:"q4",type:"text",title:"Cho đoạn chương trình sau: Nếu nhập a = 5, b = 9 thì sau đoạn chương trình a có giá trị là: ........",answer:"5",image:img1},
+      {id:"q5",type:"mcq",title:"Đối với một bài thuyết trình về môi trường và thiên nhiên, màu nền nào là lựa chọn phù hợp nhất?",options:["Màu xanh lá cây nhạt kết hợp với màu trắng","Màu đỏ tươi kết hợp với đen","Màu vàng chanh kết hợp xanh biển đậm","Màu hồng pastel kết hợp xanh lam"],answer:"Màu xanh lá cây nhạt kết hợp với màu trắng"},
+      {id:"q6",type:"mcq",title:"Để làm một nhân vật di chuyển 10 bước trong Scratch, em sử dụng khối lệnh nào?",options:["Tùy chọn 1","Tùy chọn 2","Tùy chọn 3","Tùy chọn 4"],answer:"Tùy chọn 1",image:img2},
+      {id:"q7",type:"mcq",title:"Bước đầu tiên khi xây dựng thuật toán là gì?",options:["Viết mã nguồn","Phân tích bài toán và xác định yêu cầu","Thêm nhân vật trong Scratch","Kiểm tra lỗi chương trình"],answer:"Phân tích bài toán và xác định yêu cầu"},
+      {id:"q8",type:"mcq",title:"Lệnh Thiết kế trong phần mềm Scratch là nơi chứa những gì?",options:["Chứa các âm thanh khác nhau của đối tượng","Chứa các thiết kế, các giao diện khác nhau của đối tượng","Chứa danh mục các lệnh dùng để lập trình cho các đối tượng trong Scratch","Đáp án khác"],answer:"Chứa các thiết kế, các giao diện khác nhau của đối tượng"},
+      {id:"q9",type:"mcq",title:"Câu lệnh trong hình là lệnh lặp. Theo em, việc tính tổng n = n + 2 sẽ dừng lại khi nào?",options:["Không dừng lại","Khi n lớn hơn 10","Khi n bằng 10","Khi n nhỏ hơn 10"],answer:"Khi n lớn hơn 10",image:img3},
+      {id:"q10",type:"mcq",title:"Chọn phát biểu SAI trong các phát biểu sau đây:",options:["Biến được dùng để lưu trữ giá trị không thể thay đổi trong quá trình thực hiện chương trình","Hằng có giá trị không đổi trong quá trình thực hiện chương trình","Biểu thức là sự kết hợp của biến, hằng, các phép toán, dấu ngoặc","Giá trị trả về của một biểu thức thuộc một kiểu dữ liệu nhất định"],answer:"Biến được dùng để lưu trữ giá trị không thể thay đổi trong quá trình thực hiện chương trình"},
+      {id:"q11",type:"mcq",title:"Chọn phát biểu SAI trong các phát biểu sau đây:",options:["Văn bản trên trang chiếu cần chi tiết, cụ thể, càng nhiều thông tin càng tốt.","Màu sắc, cỡ chữ, phông chữ, ... đóng vai trò quan trọng trong việc thiết kế một bài trình chiếu.","Phần mềm trình chiếu cho phép tạo đầu trang, chân trang và số trang tương tự phần mềm soạn thảo văn bản.","Thông tin ở đầu trang, chân trang thường bao gồm tên người trình chiếu, tên công ti, tiêu đề bài trình chiếu, thời gian trình chiếu, ..."],answer:"Văn bản trên trang chiếu cần chi tiết, cụ thể, càng nhiều thông tin càng tốt."},
+      {id:"q12",type:"text",title:"Phép toán trả lại kết quả ........",answer:"false",image:img4},
+      {id:"q13",type:"text",title:"Để chương trình vẽ được hình ngũ giác đều em cần sử dụng lệnh quay trái ...... độ.",answer:"72",image:img5},
+      {id:"q14",type:"text",title:"Cho đoạn chương trình sau: Nếu nhập a = 5, b = 9 thì sau đoạn chương trình nhân vật sẽ nói: ........",answer:"low",image:img6},
+      {id:"q15",type:"mcq",title:"Em hãy sắp xếp lại các bước để thêm chân trang vào bài trình chiếu sao cho đúng?",options:["4 -> 2 -> 1 -> 6 -> 3 -> 5","4 -> 2 -> 6 -> 1 -> 3 -> 5","1 -> 2 -> 3 -> 4 -> 5 -> 6","1 -> 4 -> 6 -> 3 -> 2 -> 5"],answer:"4 -> 2 -> 1 -> 6 -> 3 -> 5"},
+      {id:"q16",type:"mcq",title:"Để vẽ hình đồ họa như hình tròn, hình vuông hoặc mũi tên trong trang chiếu, em dùng công cụ nào?",options:["Insert -> SmartArt","Insert -> Shapes","Design -> Shapes","View -> Draw"],answer:"Insert -> Shapes"},
+      {id:"q17",type:"mcq",title:"Chủ đề nào dưới đây nên sử dụng gam màu trung tính?",options:["Chủ đề giáo dục, học tập","Chủ đề giải trí, lễ hội","Chủ đề mang ấn tượng mạnh","Đáp án khác"],answer:"Chủ đề giáo dục, học tập"},
+      {id:"q18",type:"tf",title:"(Đúng/Sai) Ba kiểu dữ liệu phổ biến trong ngôn ngữ lập trình trực quan là: kiểu số, kiểu xâu kí tự và kiểu lôgic.",answer:"Đúng"},
+      {id:"q19",type:"tf",title:"(Đúng/Sai) Biến được dùng để lưu trữ giá trị và không thể thay đổi trong khi thực hiện chương trình.",answer:"Sai"},
+      {id:"q20",type:"tf",title:"(Đúng/Sai) Hằng là giá trị có thể thay đổi trong quá trình thực hiện chương trình.",answer:"Sai"},
+      {id:"q21",type:"tf",title:"(Đúng/Sai) Biểu thức là sự kết hợp của biến, hằng, dấu ngoặc, phép toán và các hàm để trả lại giá trị thuộc một kiểu dữ liệu nhất định.",answer:"Đúng"},
+      {id:"q22",type:"tf",title:"(Đúng/Sai) Trang chiếu càng nhiều màu sắc, phông chữ thì càng chuyên nghiệp.",answer:"Sai"},
+      {id:"q23",type:"tf",title:"(Đúng/Sai) Văn bản trên trang chiếu cần chi tiết, cụ thể, càng nhiều thông tin càng tốt.",answer:"Sai"},
+      {id:"q24",type:"tf",title:"(Đúng/Sai) Màu sắc, cỡ chữ, phông chữ, ... đóng vai trò quan trọng trong việc thiết kế một bài trình chiếu.",answer:"Đúng"},
+      {id:"q25",type:"tf",title:"(Đúng/Sai) Phần mềm trình chiếu cho phép tạo đầu trang, chân trang và số trang tương tự phần mềm soạn thảo văn bản.",answer:"Đúng"}
+    ];
+    let questions=structuredClone(baseQuestions);
+    const form=document.getElementById("quizForm"),questionsEl=document.getElementById("questions"),timerEl=document.getElementById("timer");
+    const submitBtn=document.getElementById("submitBtn"),retryBtn=document.getElementById("retryBtn"),summaryEl=document.getElementById("summary");
+    const shuffleQuestionsBtn=document.getElementById("shuffleQuestionsBtn"),shuffleAnswersBtn=document.getElementById("shuffleAnswersBtn");
+    let remain=20*60,done=false,timer=null;
+    function shuffleArray(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
+    function normalizeText(s){return(s||"").toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ")}
+    function addImage(card,src){const wrap=document.createElement("div");wrap.className="img-wrap";wrap.innerHTML=`<img src="${src}" alt="Hình câu hỏi">`;card.appendChild(wrap)}
+    function hasAnyAnswer(){const data=new FormData(form);for(const v of data.values()){if((v||"").toString().trim()!=="") return true}return false}
+    function render(){questionsEl.innerHTML="";questions.forEach((q,idx)=>{const card=document.createElement("section");card.className="card q-card";const title=document.createElement("h2");title.className="q-title";title.innerHTML=`${idx+1}) ${q.title} <span class="req">*</span>`;card.appendChild(title);if(q.image) addImage(card,q.image);if(q.type==="mcq"||q.type==="tf"){const opts=q.type==="tf"?["Đúng","Sai"]:q.options;opts.forEach((opt,i)=>{const id=`${q.id}_${i}`;const label=document.createElement("label");label.className="opt";label.setAttribute("for",id);label.innerHTML=`<input id="${id}" type="radio" name="${q.id}" value="${opt}" required><span class="badge">${letters[i]}</span><span>${opt}</span>`;card.appendChild(label)})}else{const input=document.createElement("input");input.className="txt";input.name=q.id;input.required=true;input.placeholder="Nhập đáp án...";card.appendChild(input)}const review=document.createElement("div");review.className="review";review.id=`review_${q.id}`;card.appendChild(review);questionsEl.appendChild(card)})}
+    function updateTimer(){const m=String(Math.floor(remain/60)).padStart(2,"0"),s=String(remain%60).padStart(2,"0");timerEl.textContent=`${m}:${s}`;if(remain<=300) timerEl.classList.add("warn");if(remain<=60) timerEl.classList.add("danger")}
+    function finish(auto=false){if(done) return;done=true;clearInterval(timer);const data=new FormData(form);let correct=0;questions.forEach((q)=>{const user=data.get(q.id)||"";const ok=q.type==="text"?normalizeText(user)===normalizeText(q.answer):user===q.answer;if(ok) correct++;const review=document.getElementById(`review_${q.id}`);review.style.display="block";review.innerHTML=`<p>Kết quả: <span class="${ok?"ok":"bad"}">${ok?"Đúng":"Sai"}</span></p><p>Đáp án bạn chọn: <strong>${user||"(trống)"}</strong></p><p>Đáp án đúng: <strong>${q.answer}</strong></p>`});const score=((correct/questions.length)*10).toFixed(2),perfect=Number(score)===10;summaryEl.style.display="block";summaryEl.innerHTML=`<div class="score">Điểm: ${score}/10</div><div>Số câu đúng: ${correct}/${questions.length}</div><div>${auto?"Hết giờ, hệ thống tự nộp bài.":"Bạn đã nộp bài."}</div>${perfect?`<div class="ok">Chúc mừng bạn đạt điểm tuyệt đối 10/10!</div>`:""}`;Array.from(form.elements).forEach((el)=>el.disabled=true);retryBtn.disabled=false;retryBtn.style.display="inline-block";submitBtn.disabled=true;shuffleQuestionsBtn.disabled=true;shuffleAnswersBtn.disabled=true}
+    shuffleQuestionsBtn.addEventListener("click",()=>{if(done) return;if(hasAnyAnswer()&&!confirm("Bạn đã nhập một số câu trả lời. Xáo trộn sẽ làm mới biểu mẫu, bạn có muốn tiếp tục?")) return;questions=shuffleArray(structuredClone(questions));render()});
+    shuffleAnswersBtn.addEventListener("click",()=>{if(done) return;if(hasAnyAnswer()&&!confirm("Bạn đã nhập một số câu trả lời. Xáo trộn sẽ làm mới biểu mẫu, bạn có muốn tiếp tục?")) return;questions=structuredClone(questions).map((q)=>{if(q.type==="mcq") q.options=shuffleArray([...q.options]);return q});render()});
+    form.addEventListener("submit",(e)=>{e.preventDefault();if(done) return;if(!form.checkValidity()){form.reportValidity();return}finish(false)});
+    retryBtn.addEventListener("click",()=>location.reload()); render(); updateTimer();
+    timer=setInterval(()=>{if(done) return;remain--;updateTimer();if(remain<=0) finish(true)},1000);
+  </script>
+</body>
+</html>
